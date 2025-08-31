@@ -68,6 +68,9 @@ class LoginRequest(BaseModel):
     phone_number: str
     password: str
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
 # Response schemas
 class SignupResponse(BaseModel):
     name: str
@@ -81,7 +84,6 @@ class SignupResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 class UserResponse(BaseModel):
     name: str
