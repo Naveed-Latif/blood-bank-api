@@ -1,10 +1,8 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends
-from app import schemas, models
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from app.database import get_db
 import uuid
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -22,6 +20,9 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 def create_refresh_token(user_id: str, db: Session):
+    # Import here to avoid circular imports
+    from app import models
+    
     # Create refresh token data
     to_encode = {
         "user_id": user_id,
@@ -53,6 +54,9 @@ def create_refresh_token(user_id: str, db: Session):
     return refresh_token
 
 def verify_token(token: str, credentials_exception, token_type: str = "access"):
+    # Import here to avoid circular imports
+    from app import schemas
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
@@ -67,6 +71,9 @@ def verify_token(token: str, credentials_exception, token_type: str = "access"):
     return token_data
 
 def verify_refresh_token(refresh_token: str, db: Session):
+    # Import here to avoid circular imports
+    from app import models
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid refresh token",
@@ -90,6 +97,8 @@ def verify_refresh_token(refresh_token: str, db: Session):
 
 def revoke_refresh_token(refresh_token: str, db: Session):
     """Revoke a specific refresh token"""
+    from app import models
+    
     db.query(models.RefreshToken).filter(
         models.RefreshToken.token == refresh_token
     ).update({"is_active": False})
@@ -97,6 +106,8 @@ def revoke_refresh_token(refresh_token: str, db: Session):
 
 def revoke_all_user_tokens(user_id: str, db: Session):
     """Revoke all refresh tokens for a user"""
+    from app import models
+    
     db.query(models.RefreshToken).filter(
         models.RefreshToken.user_id == user_id,
         models.RefreshToken.is_active == True
@@ -104,6 +115,7 @@ def revoke_all_user_tokens(user_id: str, db: Session):
     db.commit()
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
+    """Get current user token data only"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
