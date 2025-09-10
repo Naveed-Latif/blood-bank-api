@@ -15,9 +15,17 @@ async def login(
     login_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
-    # Find user by phone number
+    # Find user by phone number or email
+    user = None
+    
+    # First try to find by phone number
     user = db.query(models.User).filter(
         models.User.phone_number == login_data.username).first()
+    
+    # If not found by phone, try to find by email
+    if not user:
+        user = db.query(models.User).filter(
+            models.User.email == login_data.username).first()
 
     if not user:
         raise HTTPException(

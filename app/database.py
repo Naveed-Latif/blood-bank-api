@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import URL
 import os
 from dotenv import load_dotenv
+from app.config import settings
 
 # Load environment variables
 load_dotenv()
@@ -12,12 +13,12 @@ load_dotenv()
 
 # Database configuration
 DATABASE_URL = URL.create(
-    drivername="postgresql",
-    username="postgres",
-    password="Lionwox123",
-    host="localhost",
-    port=5432,
-    database="Blood_Donation_App",
+    drivername=settings.database_driver_name,
+    username=settings.database_username,
+    password=settings.database_password,
+    host=settings.database_hostname,
+    port=settings.database_port,
+    database=settings.database_name,
 
 )
 

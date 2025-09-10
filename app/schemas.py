@@ -7,12 +7,14 @@ import re
 class SignupRequest(BaseModel):
     name: str
     last_name: str
+    email: Optional[str] = None
     phone_number: str
     blood_group: str
     last_donation_date: Optional[date] = None
     city: str
     country: str
     password: str
+    confirm_password: str
 
     @field_validator("name", "last_name")
     @classmethod
@@ -22,6 +24,17 @@ class SignupRequest(BaseModel):
         if not v.replace(" ", "").isalpha():
             raise ValueError("Name should only contain letters and spaces")
         return v.strip()
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v):
+        if v is not None:
+            # Basic email validation regex
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, v.strip()):
+                raise ValueError("Invalid email format")
+            return v.strip().lower()
+        return v
 
     @field_validator("phone_number")
     @classmethod
@@ -64,8 +77,15 @@ class SignupRequest(BaseModel):
             raise ValueError("Password must contain at least one special character.")
         return v
 
+    @field_validator("confirm_password")
+    @classmethod
+    def validate_confirm_password(cls, v, info):
+        if 'password' in info.data and v != info.data['password']:
+            raise ValueError("Passwords do not match")
+        return v
+
 class LoginRequest(BaseModel):
-    phone_number: str
+    username: str  # Can be either phone number or email
     password: str
 
 class RefreshTokenRequest(BaseModel):
@@ -75,6 +95,7 @@ class RefreshTokenRequest(BaseModel):
 class SignupResponse(BaseModel):
     name: str
     last_name: str
+    email: Optional[str] = None
     phone_number: str
     blood_group: str
     last_donation_date: Optional[date]
@@ -88,6 +109,7 @@ class SignupResponse(BaseModel):
 class UserResponse(BaseModel):
     name: str
     last_name: str
+    email: Optional[str] = None
     phone_number: str
     blood_group: str
     last_donation_date: Optional[date]

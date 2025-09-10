@@ -13,11 +13,20 @@ router = APIRouter(
 @router.post("/", response_model=schemas.SignupResponse, status_code=status.HTTP_201_CREATED)
 async def signup(user_data: schemas.SignupRequest, db: Session = Depends(get_db)):
     # Check if phone number already exists
+    print(user_data)
     existing_user = db.query(models.User).filter(
         models.User.phone_number == user_data.phone_number).first()
     if existing_user:
         raise HTTPException(
             status_code=400, detail="Phone number already registered")
+    
+    # Check if email already exists (if provided)
+    if user_data.email:
+        existing_email_user = db.query(models.User).filter(
+            models.User.email == user_data.email).first()
+        if existing_email_user:
+            raise HTTPException(
+                status_code=400, detail="Email already registered")
 
     # Generate unique user ID
     user_id = f"USER_{uuid.uuid4().hex[:8].upper()}"
