@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from .routers import signup, auth, user
 
 # Import local modules
-from .database import  create_tables
+from .database import create_tables
 from fastapi.middleware.cors import CORSMiddleware
 
 # Use FastAPI lifespan event for table creation
@@ -20,6 +20,7 @@ app = FastAPI(title='Blood Donation API',
 origins = [
     "http://localhost:3000",  # Next.js dev server
     "http://127.0.0.1:3000",
+    "https://blood-donation-bank-ten.vercel.app",  # Vercel production frontend
 ]
 
 
@@ -32,6 +33,8 @@ app.add_middleware(
 )
 
 # Root endpoint - welcome message
+
+
 @app.get("/")
 async def root():
     return {"message": "Blood Donation API - Welcome!"}
@@ -40,17 +43,13 @@ async def root():
 # Signup endpoint - register new blood donor
 app.include_router(signup.router)
 
- 
+
 # Login endpoint
 app.include_router(auth.router)
 
 
 # User endpoints
 app.include_router(user.router)
-
-
-
-
 
 
 # Run the application when script is executed directly
