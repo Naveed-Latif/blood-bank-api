@@ -11,20 +11,21 @@ load_dotenv()
 # Import settings
 # from .config import settings
 
-# Database configuration
+# Database configuration - URL.create handles special characters automatically
 DATABASE_URL = URL.create(
-    drivername=settings.database_driver_name,
+    drivername="postgresql+psycopg2",  # Specify the driver explicitly
     username=settings.database_username,
     password=settings.database_password,
     host=settings.database_hostname,
     port=settings.database_port,
     database=settings.database_name,
-
+    query={"sslmode": "require"}  # Supabase requires SSL
 )
 
-# Create SQLAlchemy engine
+# Create SQLAlchemy engine with SSL parameters
 engine = create_engine(
-    DATABASE_URL
+    DATABASE_URL,
+    connect_args={"sslmode": "require"}
 )
 
 # Create SessionLocal class

@@ -8,20 +8,13 @@ from alembic import context
 from app.models import Base  # Import your models to ensure they are registered with SQLAlchemy
 from app.config import settings
 
-
-url = URL.create(
-    drivername=settings.database_driver_name,
-    username=settings.database_username,
-    password=settings.database_password,
-    host=settings.database_hostname,
-    port=settings.database_port,
-    database=settings.database_name,
-
-)
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", f'postgresql+psycopg2://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}')
+
+# Build the connection string with SSL
+connection_string = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}?sslmode=require"
+config.set_main_option("sqlalchemy.url", connection_string)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

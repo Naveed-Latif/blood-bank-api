@@ -1,14 +1,9 @@
-﻿from fastapi import FastAPI, HTTPException, status, Depends
-from sqlalchemy.orm import Session
-from datetime import datetime
-import uuid
+﻿from fastapi import FastAPI,  Depends
 from contextlib import asynccontextmanager
-from typing import Optional
 from .routers import signup, auth, user
 
 # Import local modules
-from . import schemas, models, database
-from .database import get_db, create_tables
+from .database import  create_tables
 from fastapi.middleware.cors import CORSMiddleware
 
 # Use FastAPI lifespan event for table creation
