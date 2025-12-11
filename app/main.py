@@ -20,8 +20,7 @@ app = FastAPI(title='Blood Donation API',
 origins = [
     "http://localhost:3000",  # Next.js dev server
     "http://127.0.0.1:3000",
-    "https://blood-donation-bank-ten.vercel.app",
-    "https://bloodcompass.vercel.app/"  # Vercel production frontend
+    "https://bloodcompass.vercel.app"  # Vercel production frontend
 ]
 
 
