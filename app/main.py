@@ -1,17 +1,24 @@
-﻿from fastapi import FastAPI,  Depends
+from fastapi import FastAPI,  Depends
 from contextlib import asynccontextmanager
 from .routers import signup, auth, user
 
 # Import local modules
 from .database import create_tables
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 # Use FastAPI lifespan event for table creation
 
 
 @asynccontextmanager
 async def lifespan(app):
-    create_tables()
+    # Try to create tables on startup, but don't fail if database is unavailable
+    try:
+        create_tables()
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Could not create tables on startup: {e}")
+        logger.info("Application will continue - tables will be created on first use")
     yield
 
 app = FastAPI(title='Blood Donation API',
