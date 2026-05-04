@@ -88,8 +88,6 @@ class LoginRequest(BaseModel):
     username: str  # Can be either phone number or email
     password: str
 
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str
 
 # Response schemas
 class SignupResponse(BaseModel):
@@ -119,10 +117,6 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class Token(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str
 
 class AccessTokenResponse(BaseModel):
     access_token: str
@@ -130,3 +124,35 @@ class AccessTokenResponse(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+class UpdateProfileRequest(BaseModel):
+    name: str
+    last_name: str
+    email: Optional[str] = None
+    phone_number: str
+    blood_group: str
+    city: str
+    last_donation_date: Optional[date] = None
+
+    @field_validator("phone_number")
+    @classmethod
+    def validate_phone(cls, v):
+        digits_only = re.sub(r"\D", "", v)
+        if len(digits_only) < 10 or len(digits_only) > 15:
+            raise ValueError("Phone number should be between 10-15 digits")
+        return digits_only
+
+    @field_validator("blood_group")
+    @classmethod
+    def validate_blood_group(cls, v):
+        valid_groups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+        if v.upper() not in valid_groups:
+            raise ValueError(f"Blood group must be one of: {', '.join(valid_groups)}")
+        return v.upper()
+
+    @field_validator("last_donation_date")
+    @classmethod
+    def validate_donation_date(cls, v):
+        if v and v > date.today():
+            raise ValueError("Last donation date cannot be in the future")
+        return v
