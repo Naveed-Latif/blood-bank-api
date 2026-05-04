@@ -31,13 +31,6 @@ async def get_users(
     users = db.query(models.User).all()
     return users
 
-# Get users by blood group
-@router.get("/blood-group/{blood_group}", response_model=list[schemas.UserResponse])
-async def get_users_by_blood_group(
-    blood_group: str, 
-    db: Session = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user_from_db)
-):
     # Validate blood group
     valid_groups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
     if blood_group.upper() not in valid_groups:
@@ -59,17 +52,6 @@ async def get_users_by_blood_group(
     
     return users
 
-# Get specific user by ID (keeping for admin purposes)
-@router.get("/{user_id}", response_model=schemas.UserResponse)
-async def get_user(
-    user_id: str, 
-    db: Session = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user_from_db)
-):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
 
 # Get current user's profile
 @router.get("/me/profile", response_model=schemas.UserResponse)
@@ -77,4 +59,17 @@ async def get_my_profile(
     current_user: models.User = Depends(get_current_user_from_db)
 ):
     """Get the current user's profile"""
+    return current_user
+
+
+@router.put("/me/profile", response_model=schemas.UserResponse)
+async def update_my_profile(
+    data: schemas.UpdateProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user_from_db)
+):
+    for field, value in data.model_dump().items():
+        setattr(current_user, field, value)
+    db.commit()
+    db.refresh(current_user)
     return current_user

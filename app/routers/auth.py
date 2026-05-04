@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, Cookie
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app import schemas, models, utils, oauth2
@@ -57,68 +57,7 @@ async def login(
         "token_type": "bearer"
     }
 
-@router.post("/refresh", response_model=schemas.AccessTokenResponse)
-async def refresh_access_token(
-    request: Request,
-    refresh_token: Optional[str] = Cookie(None, alias="refresh_token"),
-    db: Session = Depends(get_db)
-):
-    """
-    Generate a new access token using a valid refresh token from cookie
-    """
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token not found"
-        )
-    
-    try:
-        # Verify refresh token
-        token_data = oauth2.verify_refresh_token(refresh_token, db)
-        
-        # Create new access token
-        access_token = oauth2.create_access_token(data={"user_id": token_data.id})
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
-        )
 
-@router.post("/refresh-json", response_model=schemas.AccessTokenResponse)
-async def refresh_access_token_json(
-    refresh_request: schemas.RefreshTokenRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Generate a new access token using a valid refresh token from request body
-    """
-    try:
-        # Verify refresh token
-        token_data = oauth2.verify_refresh_token(refresh_request.refresh_token, db)
-        
-        # Create new access token
-        access_token = oauth2.create_access_token(data={"user_id": token_data.id})
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
-        )
 
 @router.post("/logout")
 async def logout(
@@ -144,42 +83,3 @@ async def logout(
             detail="Error logging out"
         )
 
-@router.post("/logout-json")
-async def logout_json(
-    refresh_request: schemas.RefreshTokenRequest,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(oauth2.get_current_user)
-):
-    """
-    Logout by revoking the refresh token (JSON version)
-    """
-    try:
-        oauth2.revoke_refresh_token(refresh_request.refresh_token, db)
-        return {"message": "Successfully logged out"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error logging out"
-        )
-
-@router.post("/logout-all")
-async def logout_all_devices(
-    response: Response,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(oauth2.get_current_user)
-):
-    """
-    Logout from all devices by revoking all refresh tokens for the user
-    """
-    try:
-        oauth2.revoke_all_user_tokens(current_user.id, db)
-        
-        # Clear the refresh token cookie
-        response.delete_cookie(key="refresh_token")
-        
-        return {"message": "Successfully logged out from all devices"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error logging out from all devices"
-        )

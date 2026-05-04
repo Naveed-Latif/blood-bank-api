@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
-
+    
     class Config:
         env_file = ".env"
 
