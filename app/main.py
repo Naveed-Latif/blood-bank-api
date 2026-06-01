@@ -1,6 +1,6 @@
 from fastapi import FastAPI,  Depends
 from contextlib import asynccontextmanager
-from .routers import signup, auth, user
+from .routers import signup, auth, user, health
 
 # Import local modules
 from .database import create_tables
@@ -57,6 +57,10 @@ app.include_router(auth.router)
 
 # User endpoints
 app.include_router(user.router)
+
+
+# Health check endpoint
+app.include_router(health.router)
 
 
 # Run the application when script is executed directly
